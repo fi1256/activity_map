@@ -1,4 +1,9 @@
-import { initializeBlock, useViewport } from "@airtable/blocks/ui";
+import {
+  initializeBlock,
+  useBase,
+  useRecords,
+  useViewport,
+} from "@airtable/blocks/ui";
 import React, { useEffect } from "react";
 import "./style.css";
 import Map from "@arcgis/core/Map";
@@ -11,20 +16,75 @@ import Expand from "@arcgis/core/widgets/Expand";
 import ACTIVITY_DATA from "./geojson_data.json";
 import { viewport } from "@airtable/blocks";
 
-viewport.addMinSize({
-  height: 320,
-  width: 520,
-});
+// viewport.addMinSize({
+//   height: 320,
+//   width: 520,
+// });
 
 // --- Inline GeoJSON ---
-const geojsonData = ACTIVITY_DATA;
+// const geojsonData = ACTIVITY_DATA;
 
 function HelloWorldTypescriptApp() {
-  const viewport = useViewport();
+  const base = useBase();
 
+  const table = base.getTableByNameIfExists("All Data");
+  const records = useRecords(table!);
+
+  function getRecordProperties(record) {
+    const result = {
+      abducted_yn: record.getCellValueAsString("abducted_yn"),
+      simplified_activity: record.getCellValueAsString("simplified_activity"),
+      activity_date: record.getCellValueAsString("activity_date"),
+      start_hour_min: record.getCellValueAsString("start_hour_min"),
+      address: record.getCellValueAsString("address"),
+      location_type: record.getCellValueAsString("location_type"),
+      veracity: record.getCellValueAsString("veracity"),
+      additional_description: record.getCellValueAsString(
+        "additional_description"
+      ),
+      start_datetime_str: record.getCellValueAsString("start_datetime_str"),
+      start_timestamp: record.getCellValue("start_timestamp"),
+      hour_of_day: record.getCellValue("hour_of_day"),
+      map_activity: record.getCellValueAsString("map_activity"),
+      day_of_week: record.getCellValueAsString("day_of_week"),
+      hour_of_day_str: record.getCellValueAsString("hour_of_day_str"),
+    };
+
+    return result;
+  }
+
+  const features = records.map((record) => {
+    const properties = getRecordProperties(record);
+
+    return {
+      type: "Feature",
+      geometry: {
+        type: "Point",
+        coordinates: [record.getCellValue("long"), record.getCellValue("lat")],
+      },
+      properties,
+    };
+  });
+
+  const geojsonData = {
+    type: "FeatureCollection",
+    name: "latest from All Data",
+    crs: {
+      type: "name",
+      properties: {
+        name: "urn:ogc:def:crs:OGC:1.3:CRS84",
+      },
+    },
+    features,
+  };
+
+  const viewport = useViewport();
   const { width, height } = viewport.size;
 
   useEffect(() => {
+    if (!features) return;
+
+    console.log(features[0]);
     viewport.enterFullscreenIfPossible();
 
     // --- Convert GeoJSON to Graphics ---
@@ -517,7 +577,7 @@ function HelloWorldTypescriptApp() {
     // }
 
     applyFilters();
-  }, []);
+  }, [features]);
 
   console.log({ height, width });
 
@@ -529,7 +589,7 @@ function HelloWorldTypescriptApp() {
         </div>
 
         <div id="map-title">
-          ICE Activity in the Twin Cities Metro Area (last updated 12-29-2025)
+          ICE Activity in the Twin Cities Metro Area (All Data table)
         </div>
 
         <div id="controls" className="filters-panel">
