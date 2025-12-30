@@ -13,16 +13,6 @@ import Graphic from "@arcgis/core/Graphic";
 import Legend from "@arcgis/core/widgets/Legend";
 import Slider from "@arcgis/core/widgets/Slider";
 import Expand from "@arcgis/core/widgets/Expand";
-import ACTIVITY_DATA from "./geojson_data.json";
-import { viewport } from "@airtable/blocks";
-
-// viewport.addMinSize({
-//   height: 320,
-//   width: 520,
-// });
-
-// --- Inline GeoJSON ---
-// const geojsonData = ACTIVITY_DATA;
 
 function HelloWorldTypescriptApp() {
   const base = useBase();
