@@ -72,9 +72,6 @@ function HelloWorldTypescriptApp() {
   const { width, height } = viewport.size;
 
   useEffect(() => {
-    if (!features) return;
-
-    console.log(features[0]);
     viewport.enterFullscreenIfPossible();
 
     // --- Convert GeoJSON to Graphics ---
@@ -567,7 +564,7 @@ function HelloWorldTypescriptApp() {
     // }
 
     applyFilters();
-  }, [features]);
+  }, []);
 
   console.log({ height, width });
 
