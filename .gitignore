@@ -1,0 +1,6 @@
+/node_modules
+/.airtableblocksrc.json
+/build
+
+frontend/geojson_data.json
+.tmp
