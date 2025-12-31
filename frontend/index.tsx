@@ -4,7 +4,7 @@ import {
   useRecords,
   useViewport,
 } from "@airtable/blocks/ui";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import "./style.css";
 import Map from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
@@ -13,6 +13,18 @@ import Graphic from "@arcgis/core/Graphic";
 import Legend from "@arcgis/core/widgets/Legend";
 import Slider from "@arcgis/core/widgets/Slider";
 import Expand from "@arcgis/core/widgets/Expand";
+
+const ACTIVITIES = [
+  "Raid",
+  "Abduction/Attempt",
+  "Threat",
+  "Stakeout",
+  "Gathering/Staging",
+  "Driving/Observed",
+  "Drone",
+  "Helicopter",
+  "Misc/Unknown",
+];
 
 function HelloWorldTypescriptApp() {
   const base = useBase();
@@ -70,6 +82,20 @@ function HelloWorldTypescriptApp() {
 
   const viewport = useViewport();
   const { width, height } = viewport.size;
+
+  const [selectedActivities, setSelectedActivities] =
+    React.useState(ACTIVITIES);
+
+  const [applyFilters, setApplyFilters] = React.useState(null);
+
+  useEffect(() => {
+    console.log(
+      "selectedActivities changed:",
+      selectedActivities,
+      applyFilters
+    );
+    applyFilters?.();
+  }, [selectedActivities, applyFilters]);
 
   useEffect(() => {
     viewport.enterFullscreenIfPossible();
@@ -454,11 +480,11 @@ function HelloWorldTypescriptApp() {
     }
 
     // --- Filter Function ---
-    function applyFilters(hour = null) {
-      const selectedActivities = Array.from(activityToggles)
-        .filter((cb) => cb.checked)
-        .map((cb) => cb.value);
-
+    const applyFilters = (hour = null) => {
+      // const selectedActivities = Array.from(activityToggles)
+      //   .filter((cb) => cb.checked)
+      //   .map((cb) => cb.value);
+      console.log({ selectedActivities });
       const start = startDateInput.value
         ? new Date(startDateInput.value).getTime()
         : null;
@@ -505,7 +531,9 @@ function HelloWorldTypescriptApp() {
         pointsLayer.visible = true;
         heatLayer.visible = true;
       }
-    }
+    };
+
+    setApplyFilters(() => applyFilters);
 
     // --- Event Listeners ---
     applyDateBtn.addEventListener("click", () =>
@@ -564,9 +592,9 @@ function HelloWorldTypescriptApp() {
     // }
 
     applyFilters();
-  }, []);
+  }, [selectedActivities]);
 
-  console.log({ height, width });
+  console.log("render");
 
   return (
     <>
@@ -622,39 +650,26 @@ function HelloWorldTypescriptApp() {
           <div className="filter-section">
             <label className="filter-label">Activities</label>
             <div className="checkbox-grid" id="activityToggles">
-              <label>
-                <input type="checkbox" value="Raid" checked /> Raid
-              </label>
-              <label>
-                <input type="checkbox" value="Abduction/Attempt" checked />{" "}
-                Abduction
-              </label>
-              <label>
-                <input type="checkbox" value="Threat" checked /> Threat
-              </label>
-              <label>
-                <input type="checkbox" value="Stakeout" checked /> Stakeout
-              </label>
-              <label>
-                <input type="checkbox" value="Gathering/Staging" checked />{" "}
-                Gathering / Staging
-              </label>
-              <label>
-                <input type="checkbox" value="Driving/Observed" checked />{" "}
-                Driving / Observed
-              </label>
-
-              <label>
-                <input type="checkbox" value="Drone" checked /> Drone
-              </label>
-              <label>
-                <input type="checkbox" value="Helicopter" checked /> Helicopter
-              </label>
-
-              <label>
-                <input type="checkbox" value="Misc/Unknown" checked /> Misc /
-                Unknown
-              </label>
+              {ACTIVITIES.map((activity) => (
+                <label key={activity}>
+                  <input
+                    type="checkbox"
+                    value={activity}
+                    checked={selectedActivities.includes(activity)}
+                    onChange={(e) => {
+                      const isChecked = e.target.checked;
+                      setSelectedActivities((prev) => {
+                        if (isChecked) {
+                          return [...prev, activity];
+                        } else {
+                          return prev.filter((a) => a !== activity);
+                        }
+                      });
+                    }}
+                  />{" "}
+                  {activity}
+                </label>
+              ))}
             </div>
           </div>
         </div>
